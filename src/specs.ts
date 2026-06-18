@@ -14,6 +14,19 @@ export type PhotoSpec = {
 
 export const SPECS: PhotoSpec[] = [
   {
+    id: "ru_passport_35x45",
+    label: "Russian passport / 35 × 45 mm @ 300 DPI",
+    widthPx: Math.round((35 / 25.4) * 300),
+    heightPx: Math.round((45 / 25.4) * 300),
+    dpi: 300,
+    background: "#ffffff",
+    targetHeadRatio: 0.76,
+    targetEyeLineRatio: 0.43,
+    minFaceRatio: 0.62,
+    maxFaceRatio: 0.84,
+    notes: "Russian passport preset for 35×45 mm photos. Check current official requirements before submission."
+  },
+  {
     id: "eu_35x45",
     label: "EU / 35 × 45 mm @ 300 DPI",
     widthPx: Math.round((35 / 25.4) * 300),
@@ -58,7 +71,7 @@ export function withDpi(spec: PhotoSpec, dpi: number): PhotoSpec {
   if (spec.id === "us_2x2") {
     return { ...spec, widthPx: Math.round(2 * dpi), heightPx: Math.round(2 * dpi), dpi };
   }
-  if (spec.id === "eu_35x45") {
+  if (spec.id === "eu_35x45" || spec.id === "ru_passport_35x45") {
     return {
       ...spec,
       widthPx: Math.round((35 / 25.4) * dpi),

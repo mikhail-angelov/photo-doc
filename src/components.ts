@@ -1,4 +1,5 @@
 import type { PhotoSpec } from "./specs";
+import { UI_EVENTS, type UiEventName } from "./ui-events";
 
 type StatusLevel = "neutral" | "ok" | "warn" | "fail";
 type WarningLevel = "warn" | "fail";
@@ -197,7 +198,7 @@ export class PhotoDocIntroElement extends HTMLElement {
   private emitSelectedFile(input: HTMLInputElement) {
     const file = input.files?.[0];
     if (!file) return;
-    this.dispatchEvent(new CustomEvent("file-selected", { bubbles: true, detail: { file } }));
+    this.dispatchEvent(new CustomEvent(UI_EVENTS.fileSelected, { bubbles: true, detail: { file } }));
   }
 }
 
@@ -294,27 +295,27 @@ export class PhotoDocToolbarElement extends HTMLElement {
 
   private bindEvents() {
     this.specSelect.addEventListener("change", () => {
-      this.emit("spec-change", { specId: this.specSelect.value });
+      this.emit(UI_EVENTS.specChange, { specId: this.specSelect.value });
     });
 
     for (const input of this.bgPresetInputs) {
       input.addEventListener("change", () => {
-        if (input.checked) this.emit("background-change", { color: input.value });
+        if (input.checked) this.emit(UI_EVENTS.backgroundChange, { color: input.value });
       });
     }
 
     this.useBgRemoval.addEventListener("change", () => {
-      this.emit("bg-removal-change", { enabled: this.useBgRemoval.checked });
+      this.emit(UI_EVENTS.bgRemovalChange, { enabled: this.useBgRemoval.checked });
     });
-    this.autoFit.addEventListener("change", () => this.emit("auto-fit-change", { enabled: this.autoFit.checked }));
-    this.showGuides.addEventListener("change", () => this.emit("guides-change", { enabled: this.showGuides.checked }));
-    this.toggleOriginalBtn.addEventListener("click", () => this.emit("toggle-original"));
-    this.reuploadBtn.addEventListener("click", () => this.emit("reupload-request"));
-    this.downloadBtn.addEventListener("click", () => this.emit("download-request"));
-    this.statusButton.addEventListener("click", () => this.emit("status-click"));
+    this.autoFit.addEventListener("change", () => this.emit(UI_EVENTS.autoFitChange, { enabled: this.autoFit.checked }));
+    this.showGuides.addEventListener("change", () => this.emit(UI_EVENTS.guidesChange, { enabled: this.showGuides.checked }));
+    this.toggleOriginalBtn.addEventListener("click", () => this.emit(UI_EVENTS.toggleOriginal));
+    this.reuploadBtn.addEventListener("click", () => this.emit(UI_EVENTS.reuploadRequest));
+    this.downloadBtn.addEventListener("click", () => this.emit(UI_EVENTS.downloadRequest));
+    this.statusButton.addEventListener("click", () => this.emit(UI_EVENTS.statusClick));
   }
 
-  private emit(name: string, detail?: Record<string, unknown>) {
+  private emit(name: UiEventName, detail?: Record<string, unknown>) {
     this.dispatchEvent(new CustomEvent(name, { bubbles: true, detail }));
   }
 
@@ -343,7 +344,7 @@ export class PhotoDocStageElement extends HTMLElement {
     this.dataset.ready = "true";
     this.collectElements();
     this.resultOriginalBtn.addEventListener("click", () => {
-      this.dispatchEvent(new CustomEvent("toggle-original", { bubbles: true }));
+      this.dispatchEvent(new CustomEvent(UI_EVENTS.toggleOriginal, { bubbles: true }));
     });
   }
 

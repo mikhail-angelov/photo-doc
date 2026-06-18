@@ -1,6 +1,6 @@
 import "./styles.css";
-import { SPECS, type PhotoSpec } from "./specs";
-import { analyzeFace, type FaceAnalysis } from "./face";
+import { SPECS } from "./specs";
+import { analyzeFace } from "./face";
 import { fileToImage, removePhotoBackground } from "./background";
 import {
   APP_TEMPLATE,
@@ -10,33 +10,12 @@ import {
   definePhotoDocComponents,
   type PhotoDocWarning
 } from "./components";
-import { drawSourcePreview, renderOutput, type UserTransform } from "./render";
+import { drawSourcePreview, renderOutput } from "./render";
 import { validatePhoto } from "./validate";
 import type { ProgressCallback, ProgressEvent } from "./progress";
-
-type AppState = {
-  sourceFile: File | null;
-  sourceImage: HTMLImageElement | null;
-  foregroundImage: HTMLImageElement | null;
-  face: FaceAnalysis | null;
-  spec: PhotoSpec;
-  bgColor: string;
-  useBgRemoval: boolean;
-  autoFit: boolean;
-  showGuides: boolean;
-  showOriginalOnMobile: boolean;
-  transform: UserTransform;
-};
-
-type DragState = {
-  pointerId: number;
-  startX: number;
-  startY: number;
-  startOffsetX: number;
-  startOffsetY: number;
-  startRotationDeg: number;
-  mode: "pan" | "rotate";
-};
+import { UI_EVENTS } from "./ui-events";
+import { createDefaultTransform, createInitialState } from "./app-state";
+import { bindCanvasInteractions } from "./interactions";
 
 type AppElements = {
   appShell: HTMLElement;
@@ -67,26 +46,10 @@ function getElements(root: ParentNode): AppElements {
   };
 }
 
-const state: AppState = {
-  sourceFile: null,
-  sourceImage: null,
-  foregroundImage: null,
-  face: null,
-  spec: SPECS[0],
-  bgColor: SPECS[0].background,
-  useBgRemoval: true,
-  autoFit: true,
-  showGuides: true,
-  showOriginalOnMobile: false,
-  transform: { zoom: 1, offsetX: 0, offsetY: 0, rotationDeg: 0 }
-};
+const state = createInitialState();
 
 let hideProgressTimer: number | null = null;
 let isProcessing = false;
-let dragState: DragState | null = null;
-let pinchStartDistance = 0;
-let pinchStartZoom = 1;
-const activeTouches = new Map<number, { x: number; y: number }>();
 const processingWarnings: Array<{ level: "warn" | "fail"; text: string }> = [];
 
 if (!customElements.get("photo-doc-app")) {
@@ -102,11 +65,11 @@ function init(root: ParentNode) {
 }
 
 function bindEvents() {
-  els.intro.addEventListener("file-selected", async (event) => {
+  els.intro.addEventListener(UI_EVENTS.fileSelected, async (event) => {
     await loadFile(detail<{ file: File }>(event).file);
   });
 
-  els.toolbar.addEventListener("spec-change", (event) => {
+  els.toolbar.addEventListener(UI_EVENTS.specChange, (event) => {
     state.spec = SPECS.find((s) => s.id === detail<{ specId: string }>(event).specId) ?? SPECS[0];
     if (!state.sourceImage) {
       state.bgColor = state.spec.background;
@@ -114,12 +77,12 @@ function bindEvents() {
     redraw();
   });
 
-  els.toolbar.addEventListener("background-change", (event) => {
+  els.toolbar.addEventListener(UI_EVENTS.backgroundChange, (event) => {
     state.bgColor = detail<{ color: string }>(event).color;
     redraw();
   });
 
-  els.toolbar.addEventListener("bg-removal-change", async (event) => {
+  els.toolbar.addEventListener(UI_EVENTS.bgRemovalChange, async (event) => {
     state.useBgRemoval = detail<{ enabled: boolean }>(event).enabled;
     if (state.sourceFile) {
       await prepareForeground(0, 100);
@@ -128,118 +91,25 @@ function bindEvents() {
     redraw();
   });
 
-  els.toolbar.addEventListener("auto-fit-change", (event) => {
+  els.toolbar.addEventListener(UI_EVENTS.autoFitChange, (event) => {
     state.autoFit = detail<{ enabled: boolean }>(event).enabled;
     redraw();
   });
 
-  els.toolbar.addEventListener("guides-change", (event) => {
+  els.toolbar.addEventListener(UI_EVENTS.guidesChange, (event) => {
     state.showGuides = detail<{ enabled: boolean }>(event).enabled;
     redraw();
   });
 
-  els.toolbar.addEventListener("toggle-original", toggleOriginalOnMobile);
-  els.stage.addEventListener("toggle-original", toggleOriginalOnMobile);
-  els.toolbar.addEventListener("reupload-request", () => els.intro.openFilePicker());
-  els.toolbar.addEventListener("download-request", downloadCanvas);
-  els.toolbar.addEventListener("status-click", () => {
+  els.toolbar.addEventListener(UI_EVENTS.toggleOriginal, toggleOriginalOnMobile);
+  els.stage.addEventListener(UI_EVENTS.toggleOriginal, toggleOriginalOnMobile);
+  els.toolbar.addEventListener(UI_EVENTS.reuploadRequest, () => els.intro.openFilePicker());
+  els.toolbar.addEventListener(UI_EVENTS.downloadRequest, downloadCanvas);
+  els.toolbar.addEventListener(UI_EVENTS.statusClick, () => {
     els.toolbar.toggleWarnings();
   });
 
-  bindCanvasInteractions();
-}
-
-function bindCanvasInteractions() {
-  const outputCanvas = els.stage.outputCanvas;
-
-  outputCanvas.addEventListener(
-    "wheel",
-    (event) => {
-      if (!state.foregroundImage) return;
-      event.preventDefault();
-      const delta = event.deltaY < 0 ? 0.08 : -0.08;
-      state.transform.zoom = clamp(state.transform.zoom + delta, 0.5, 3);
-      redraw();
-    },
-    { passive: false }
-  );
-
-  outputCanvas.addEventListener("pointerdown", (event) => {
-    if (!state.foregroundImage) return;
-
-    if (event.pointerType === "touch") {
-      activeTouches.set(event.pointerId, { x: event.clientX, y: event.clientY });
-      if (activeTouches.size === 2) {
-        pinchStartDistance = getTouchDistance();
-        pinchStartZoom = state.transform.zoom;
-      }
-    }
-
-    dragState = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      startOffsetX: state.transform.offsetX,
-      startOffsetY: state.transform.offsetY,
-      startRotationDeg: state.transform.rotationDeg,
-      mode: event.shiftKey ? "rotate" : "pan"
-    };
-
-    outputCanvas.setPointerCapture(event.pointerId);
-  });
-
-  outputCanvas.addEventListener("pointermove", (event) => {
-    if (!state.foregroundImage) return;
-
-    if (event.pointerType === "touch" && activeTouches.has(event.pointerId)) {
-      activeTouches.set(event.pointerId, { x: event.clientX, y: event.clientY });
-      if (activeTouches.size === 2 && pinchStartDistance > 0) {
-        const nextDistance = getTouchDistance();
-        if (nextDistance > 0) {
-          state.transform.zoom = clamp(pinchStartZoom * (nextDistance / pinchStartDistance), 0.5, 3);
-          redraw();
-          return;
-        }
-      }
-    }
-
-    if (!dragState || dragState.pointerId !== event.pointerId) return;
-
-    const rect = outputCanvas.getBoundingClientRect();
-    const scaleX = outputCanvas.width / Math.max(rect.width, 1);
-    const scaleY = outputCanvas.height / Math.max(rect.height, 1);
-    const deltaX = (event.clientX - dragState.startX) * scaleX;
-    const deltaY = (event.clientY - dragState.startY) * scaleY;
-
-    if (dragState.mode === "rotate") {
-      state.transform.rotationDeg = clamp(dragState.startRotationDeg + deltaX * 0.08, -20, 20);
-    } else {
-      state.transform.offsetX = clamp(dragState.startOffsetX + deltaX, -600, 600);
-      state.transform.offsetY = clamp(dragState.startOffsetY + deltaY, -600, 600);
-    }
-
-    redraw();
-  });
-
-  const releasePointer = (event: PointerEvent) => {
-    if (event.pointerType === "touch") {
-      activeTouches.delete(event.pointerId);
-      if (activeTouches.size < 2) {
-        pinchStartDistance = 0;
-      }
-    }
-
-    if (dragState?.pointerId === event.pointerId) {
-      dragState = null;
-    }
-
-    if (outputCanvas.hasPointerCapture(event.pointerId)) {
-      outputCanvas.releasePointerCapture(event.pointerId);
-    }
-  };
-
-  outputCanvas.addEventListener("pointerup", releasePointer);
-  outputCanvas.addEventListener("pointercancel", releasePointer);
+  bindCanvasInteractions(els.stage.outputCanvas, state, redraw);
 }
 
 async function loadFile(file: File) {
@@ -424,7 +294,7 @@ function toggleOriginalOnMobile() {
 }
 
 function resetManualTransform() {
-  state.transform = { zoom: 1, offsetX: 0, offsetY: 0, rotationDeg: 0 };
+  state.transform = createDefaultTransform();
 }
 
 function emptyCanvas(canvas: HTMLCanvasElement, label: string) {
@@ -504,13 +374,6 @@ function setStatus(text: string, level: "neutral" | "ok" | "warn" | "fail") {
   els.toolbar.setStatus(text, level);
 }
 
-function getTouchDistance() {
-  const touches = [...activeTouches.values()];
-  if (touches.length < 2) return 0;
-  const [a, b] = touches;
-  return Math.hypot(a.x - b.x, a.y - b.y);
-}
-
 function byId<T extends HTMLElement>(root: ParentNode, id: string): T {
   const el = root.querySelector(`#${id}`);
   if (!el) throw new Error(`Element #${id} not found`);
@@ -523,8 +386,4 @@ function missing(selector: string): never {
 
 function detail<T>(event: Event): T {
   return (event as CustomEvent<T>).detail;
-}
-
-function clamp(n: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, n));
 }

@@ -26,24 +26,57 @@ export const APP_TEMPLATE = `
       <photo-doc-toolbar></photo-doc-toolbar>
       <photo-doc-stage></photo-doc-stage>
     </section>
+    <footer class="app-footer">
+      <a
+        class="github-link"
+        href="https://github.com/mikhail-angelov/photo-doc"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="View source code on GitHub"
+      >
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18">
+          <path
+            fill="currentColor"
+            d="M12 .5a12 12 0 0 0-3.79 23.39c.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.49 5.93.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58A12 12 0 0 0 12 .5Z"
+          />
+        </svg>
+        <span>Source code</span>
+      </a>
+      <span>© 2026 Mikhail Angelov</span>
+    </footer>
   </main>
 `;
 
 const INTRO_TEMPLATE = `
   <section class="intro-card">
-    <div class="intro-copy">
-      <h1>Document Photo</h1>
-      <p class="lead">
-        Upload a photo, check the result, and fine-tune the crop directly on the canvas.
-        Processing runs locally in the browser with no backend.
-      </p>
+
+    <div class="intro-hero">
+      <div class="intro-copy">
+        <p class="eyebrow">Private browser-only editor</p>
+        <h1>Document photo  </h1>
+        <p class="lead">
+          Make passport and ID photos with automatic crop guides, background cleanup, and export-ready presets.
+        </p>
+      </div>
+
+      <div class="hero-preview" aria-label="Before and after example">
+        <figure class="preview-card before-card">
+          <span>Before</span>
+          <img src="./hero-before.jpg" alt="Original portrait before document photo processing" />
+        </figure>
+        <figure class="preview-card after-card">
+          <span>After</span>
+          <img src="./hero-after.png" alt="Processed document photo on a clean white background" />
+          <strong>Verified</strong>
+        </figure>
+      </div>
     </div>
 
     <label class="upload-card">
       <input id="fileInput" type="file" accept="image/*" />
       <input id="cameraInput" type="file" accept="image/*" capture="user" />
       <span class="upload-title">Upload Photo</span>
-      <span class="upload-hint">JPG, PNG, or HEIC if your browser supports it</span>
+      <span class="upload-hint">JPG, PNG, or HEIC. Your image stays on this device.</span>
       <button id="cameraBtn" type="button" class="camera-button mobile-only">Take Selfie</button>
     </label>
   </section>

@@ -12,6 +12,14 @@ npm run dev
 
 Open the URL printed by Vite, usually `http://127.0.0.1:5173`.
 
+## GitHub Pages
+
+The CI workflow builds the app and deploys `dist` with GitHub Pages Actions on pushes to `main` or `master`.
+
+In the repository settings, configure GitHub Pages with `Source: GitHub Actions`.
+
+Live URL: `https://mikhail-angelov.github.io/photo-doc/`
+
 ## Features
 
 - JPG/PNG/HEIC upload, when the browser supports the format.

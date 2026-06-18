@@ -58,10 +58,6 @@ class PhotoDocApp extends HTMLElement {
   }
 }
 
-if (!customElements.get("photo-doc-app")) {
-  customElements.define("photo-doc-app", PhotoDocApp);
-}
-
 function getElements(root: ParentNode): AppElements {
   return {
     appShell: byId<HTMLElement>(root, "appShell"),
@@ -92,6 +88,10 @@ let pinchStartDistance = 0;
 let pinchStartZoom = 1;
 const activeTouches = new Map<number, { x: number; y: number }>();
 const processingWarnings: Array<{ level: "warn" | "fail"; text: string }> = [];
+
+if (!customElements.get("photo-doc-app")) {
+  customElements.define("photo-doc-app", PhotoDocApp);
+}
 
 function init(root: ParentNode) {
   els = getElements(root);

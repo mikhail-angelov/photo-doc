@@ -36,12 +36,28 @@ select {
   padding: 18px 0 40px;
 }
 
+.app-shell.has-image {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 0 10px;
+}
+
+.app-shell:not(.has-image) {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0 14px;
+}
+
 .app-shell:not(.has-image) .editor-shell {
   display: none;
 }
 
 .app-shell:not(.has-image) .intro-card {
-  min-height: calc(100vh - 28px);
+  flex: 1;
+  min-height: 0;
   grid-template-columns: 1fr;
   align-items: start;
   justify-items: stretch;
@@ -55,9 +71,9 @@ select {
 
 .app-shell:not(.has-image) .upload-card {
   justify-self: center;
-  width: min(520px, 100%);
-  min-height: 154px;
-  margin-top: 24px;
+  width: min(500px, 100%);
+  min-height: 118px;
+  margin-top: 14px;
 }
 
 .intro-card,
@@ -82,7 +98,7 @@ select {
 
 .app-shell:not(.has-image) .intro-card {
   overflow: hidden;
-  padding: 0 24px 44px;
+  padding: 0 24px 6px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -98,7 +114,7 @@ select {
   display: block;
   margin: 4px auto 0;
   color: #172033;
-  font-size: 34px;
+  font-size: 30px;
   font-weight: 900;
   letter-spacing: -0.045em;
 }
@@ -110,9 +126,9 @@ select {
 .app-shell:not(.has-image) .intro-hero {
   display: grid;
   justify-items: center;
-  gap: 34px;
-  width: min(980px, 100%);
-  margin: 118px auto 0;
+  gap: clamp(14px, 2.1vh, 24px);
+  width: min(940px, 100%);
+  margin: clamp(8px, 1.8vh, 18px) auto 0;
 }
 
 .intro-copy {
@@ -141,9 +157,9 @@ h1 {
 
 .app-shell:not(.has-image) h1 {
   color: #111827;
-  font-size: clamp(54px, 9vw, 100px);
+  font-size: clamp(50px, 8vw, 84px);
   font-weight: 950;
-  line-height: 1.4;
+  line-height: 1.02;
   letter-spacing: -0.04em;
 }
 
@@ -168,6 +184,7 @@ h2 {
 
 .app-shell:not(.has-image) .lead {
   max-width: 660px;
+  margin-top: 10px;
   margin-inline: auto;
   color: #46566b;
 }
@@ -178,9 +195,9 @@ h2 {
 
 .app-shell:not(.has-image) .hero-preview {
   display: grid;
-  grid-template-columns: repeat(2, minmax(220px, 350px));
+  grid-template-columns: repeat(2, minmax(200px, min(28vh, 310px)));
   justify-content: center;
-  gap: clamp(22px, 6vw, 84px);
+  gap: clamp(18px, 5vw, 70px);
   width: 100%;
 }
 
@@ -251,7 +268,7 @@ h2 {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 28px;
+  padding: 22px;
   border-style: dashed;
   transition: transform 150ms ease, border-color 150ms ease;
 }
@@ -296,15 +313,30 @@ h2 {
   gap: 16px;
 }
 
+.app-shell.has-image .editor-shell {
+  flex: 1;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+}
+
 .app-footer {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 14px;
-  margin-top: 22px;
+  margin-top: 10px;
   color: #60758a;
   font-size: 13px;
   font-weight: 680;
+}
+
+.app-shell:not(.has-image) .app-footer {
+  flex: 0 0 auto;
+}
+
+.app-shell.has-image .app-footer {
+  flex: 0 0 auto;
 }
 
 .github-link {
@@ -325,6 +357,10 @@ h2 {
 
 .toolbar-card {
   padding: 14px 16px;
+}
+
+.app-shell.has-image .toolbar-card {
+  padding: 11px 14px;
 }
 
 .toolbar-row {
@@ -454,6 +490,10 @@ button:disabled {
   font-size: 13px;
 }
 
+.app-shell.has-image .status-row {
+  margin-top: 8px;
+}
+
 .status-button {
   padding: 0;
   border: 0;
@@ -484,10 +524,20 @@ button:disabled {
   padding: 18px;
 }
 
+.app-shell.has-image .stage-card {
+  min-height: 0;
+  padding: 12px;
+}
+
 .stage-grid {
   display: grid;
   grid-template-columns: minmax(240px, 0.72fr) minmax(0, 1.28fr);
   gap: 16px;
+}
+
+.app-shell.has-image .stage-grid {
+  height: 100%;
+  min-height: 0;
 }
 
 .stage-pane {
@@ -499,12 +549,24 @@ button:disabled {
   background: rgba(247, 250, 253, 0.86);
 }
 
+.app-shell.has-image .stage-pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 12px;
+}
+
 .pane-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
+}
+
+.app-shell.has-image .pane-head {
+  flex: 0 0 auto;
+  margin-bottom: 10px;
 }
 
 .pill {
@@ -529,6 +591,14 @@ button:disabled {
     linear-gradient(-45deg, transparent 75%, #e7edf3 75%);
   background-size: 22px 22px;
   background-position: 0 0, 0 11px, 11px -11px, -11px 0;
+  object-fit: contain;
+}
+
+.app-shell.has-image .stage-pane canvas {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  max-height: none;
   object-fit: contain;
 }
 
@@ -597,6 +667,10 @@ button:disabled {
   margin-top: 10px;
 }
 
+.app-shell.has-image .result-actions {
+  flex: 0 0 auto;
+}
+
 .mobile-only {
   display: none;
 }
@@ -607,7 +681,7 @@ button:disabled {
   }
 
   .app-shell:not(.has-image) .intro-hero {
-    margin-top: 78px;
+    margin-top: clamp(8px, 1.5vh, 14px);
   }
 
   .status-row {
@@ -625,14 +699,33 @@ button:disabled {
     padding-top: 8px;
   }
 
+  .app-shell.has-image {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .app-shell.has-image .editor-shell {
+    flex: initial;
+    grid-template-rows: none;
+  }
+
+  .app-shell.has-image .stage-grid {
+    height: auto;
+  }
+
+  .app-shell.has-image .stage-pane canvas {
+    height: auto;
+    max-height: 74vh;
+  }
+
   .app-shell:not(.has-image) {
     width: min(100vw - 18px, 1440px);
-    padding-bottom: 24px;
+    padding-bottom: 10px;
   }
 
   .app-shell:not(.has-image) .intro-card {
-    min-height: calc(100vh - 16px);
-    padding: 0 8px 28px;
+    padding: 0 8px 6px;
   }
 
   .app-shell:not(.has-image) .intro-brand {
@@ -640,17 +733,18 @@ button:disabled {
   }
 
   .app-shell:not(.has-image) .intro-hero {
-    gap: 22px;
-    margin-top: 52px;
+    gap: 14px;
+    margin-top: 10px;
   }
 
   .app-shell:not(.has-image) h1 {
-    font-size: clamp(46px, 16vw, 76px);
+    font-size: clamp(42px, 15vw, 68px);
     line-height: 1.04;
   }
 
   .app-shell:not(.has-image) .lead {
-    font-size: 16px;
+    font-size: 15px;
+    line-height: 1.45;
   }
 
   .app-shell:not(.has-image) .hero-preview {
@@ -681,13 +775,13 @@ button:disabled {
   }
 
   .app-shell:not(.has-image) .upload-card {
-    margin-top: 18px;
-    min-height: 136px;
-    padding: 22px;
+    margin-top: 12px;
+    min-height: 122px;
+    padding: 18px;
   }
 
   .upload-title {
-    font-size: 22px;
+    font-size: 21px;
   }
 
   .toolbar-row {
